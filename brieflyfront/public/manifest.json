@@ -1,0 +1,20 @@
+{
+  "manifest_version": 3,
+  "name": "BrieflyAI",
+  "version": "1.0",
+  "description": "A simple Chrome extension built with React",
+  "action": {
+    "default_popup": "index.html",
+    "default_icon": {
+      "16": "sample1.png",
+      "48": "sample2.png",
+      "128": "sample3.png"
+    }
+  },
+  "permissions": [],
+  "icons": {
+    "16": "sample1.png",
+    "48": "sample2.png",
+    "128": "sample3.png"
+  }
+}
