@@ -1,10 +1,50 @@
+from flask import Flask, request, jsonify
 from transformers import pipeline
+from flask_cors import CORS  # Import CORS
+import PyPDF2
+
+app = Flask(__name__)
+CORS(app)  # Enable CORS for all routes
 
 summarizer = pipeline('summarization')
 
-data = "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum."
+# Function to summarize text
+def summarize_text(text):
+    summary = summarizer(text, do_sample=False)
+    return summary[0]['summary_text']
 
-summary = summarizer(data, max_length=130, min_length=40, do_sample=False)
+# Function to read text from PDF file
+def read_pdf(file):
+    text = ""
+    pdf_reader = PyPDF2.PdfReader(file)
+    for page in pdf_reader.pages:
+        text += page.extract_text()
+    return text
 
-# Extract and print the summary text
-print(summary[0]['summary_text'])
+# Route to handle file upload and summarization
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return jsonify({'error': 'No file part'}), 400
+
+    file = request.files['file']
+    if file.filename == '':
+        return jsonify({'error': 'No selected file'}), 400
+
+    if file:
+        # Check file extension
+        filename = file.filename.lower()
+        if filename.endswith('.txt'):
+            text = file.read().decode('utf-8')
+        elif filename.endswith('.pdf'):
+            text = read_pdf(file)
+        else:
+            return jsonify({'error': 'Unsupported file format'}), 400
+
+        # Summarize the text
+        summary = summarize_text(text)
+        # Return the summary as JSON
+        return jsonify({'summary': summary})
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5000)
