@@ -1,31 +1,70 @@
 .App {
   text-align: center;
-  width: 300px; /* Set the desired width */
-  height: 400px; /* Set the desired height */
-  padding: 20px; /* Optional padding */
-  box-sizing: border-box; /* Ensure padding doesn't increase the size */
+  width: 800px; /* Use 100% to ensure it matches the popup width */
+  height: 600px; /* Use 100% to ensure it matches the popup height */
+  padding: 20px; /* Set the desired padding */
+  box-sizing: border-box;
+  border-radius: 8px;
 }
 
 .App-header {
-  background-color: #282c34;
-  min-height: 100%;
+  font-family: "Lucida Console", "Courier New", monospace;
+  background-color: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  font-size: calc(16px + 3vmin);  
+  color: rgb(0, 0, 0);
+  padding-bottom: 20px;
+}
+
+p {
+  font-family: "Lucida Console", "Courier New", monospace;
+  background-color: #ffffff;
+  margin: 0 auto;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  font-size: calc(10px + 2vmin);
-  color: white;
+  font-size: calc(16px + 1vmin);
 }
 
-.App-link {
-  color: #61dafb;
+.button-container {
+  margin-top: 20px;
 }
 
-@keyframes App-logo-spin {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
+.button {
+  display: inline-block;
+  outline: none;
+  cursor: pointer;
+  font-size: calc(14px + 1vmin);
+  line-height: 1.5;
+  border-radius: 8px;
+  transition: background-color 0.3s, transform 0.3s;
+  border: 2px solid transparent;
+  letter-spacing: 1px;
+  min-width: 180px;
+  text-transform: capitalize;
+  font-weight: 600;
+  text-align: center;
+  padding: 14px 32px;
+  color: #fff;
+  background-color: #000000;
+  margin: 10px;
+}
+
+.button:hover {
+  transform: scale(1.05);
+  background-color: #4b4b4b;
+}
+
+.file-input {
+  display: none;
+}
+
+.loading {
+  margin-top: 20px;
+  font-size: 1.5rem;
+  color: #333;
 }
