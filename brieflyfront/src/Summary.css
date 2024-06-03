@@ -1,10 +1,22 @@
-/* Loading.css */
+.summary {
+  margin-top: 20px;
+}
 
-.loading {
-    font-size: 22px;
-    font-weight: bold;
-    color: #333;
-    margin-top: 50px;
-    text-align: center;
-  }
-  
+.summary h2 {
+  font-size: 24px;
+  margin-bottom: 10px;
+}
+
+.summary h3 {
+  font-size: 20px;
+  margin-bottom: 5px;
+}
+
+.summary p {
+  font-size: 16px;
+  line-height: 1.6;
+}
+
+.summary strong {
+  font-weight: bold;
+}

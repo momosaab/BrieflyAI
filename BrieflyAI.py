@@ -3,6 +3,8 @@ from transformers import BartTokenizer, BartForConditionalGeneration
 import torch
 import PyPDF2
 from flask_cors import CORS
+import spacy
+import concurrent.futures
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -12,8 +14,11 @@ model_name = 'facebook/bart-large-cnn'
 tokenizer = BartTokenizer.from_pretrained(model_name)
 model = BartForConditionalGeneration.from_pretrained(model_name)
 
+# Load SpaCy model
+nlp = spacy.load('en_core_web_sm')
+
 # Function to split text into smaller segments
-def split_text(text, segment_length=1024):
+def split_text(text, segment_length=2048):
     segments = []
     num_segments = len(text) // segment_length + 1
     for i in range(num_segments):
@@ -24,13 +29,9 @@ def split_text(text, segment_length=1024):
 
 # Function to summarize text with BART
 def summarize_text_with_bart(text):
-    # Tokenize input text
     inputs = tokenizer([text], max_length=1024, return_tensors='pt', truncation=True)
-
-    # Generate summary
     summary_ids = model.generate(inputs['input_ids'], num_beams=4, max_length=150, early_stopping=True)
     summary_text = tokenizer.decode(summary_ids[0], skip_special_tokens=True)
-
     return summary_text
 
 # Function to read text from PDF file
@@ -41,19 +42,29 @@ def read_pdf(file):
         text += page.extract_text()
     return text
 
+# Function to extract topic names from text
+def extract_topic_name(text):
+    doc = nlp(text)
+    entities = [ent.text for ent in doc.ents if ent.label_ in {'ORG', 'PERSON', 'GPE', 'LOC', 'PRODUCT'}]
+    if entities:
+        return ', '.join(set(entities[:3]))  # Return up to 3 unique entities
+    words = text.split()
+    return ' '.join(words[:5])
+
 # Post-processing function to clean up the summary output
 def post_process_summary(summary):
-    # Split the text into sentences
-    sentences = summary.split('. ')  # Split at periods followed by a space
-
-    # Ensure proper punctuation and formatting
+    sentences = summary.split('. ')
     processed_summary = '. '.join(sentence.strip().capitalize() for sentence in sentences)
-
-    # Add a period at the end of the last sentence if missing
     if processed_summary and not processed_summary.endswith('.'):
         processed_summary += '.'
-
     return processed_summary
+
+# Asynchronous summarization function
+def summarize_segment(segment):
+    summary = summarize_text_with_bart(segment)
+    processed_summary = post_process_summary(summary)
+    topic_name = extract_topic_name(processed_summary)
+    return {'topic_name': topic_name, 'summary': processed_summary}
 
 # Route to handle file upload and text summarization with BART
 @app.route('/upload', methods=['POST'])
@@ -66,7 +77,6 @@ def upload_file():
         return jsonify({'error': 'No selected file'}), 400
 
     if file:
-        # Check file extension
         filename = file.filename.lower()
         if filename.endswith('.txt'):
             text = file.read().decode('utf-8')
@@ -75,14 +85,18 @@ def upload_file():
         else:
             return jsonify({'error': 'Unsupported file format'}), 400
 
-        # Summarize text using BART
-        summary = summarize_text_with_bart(text)
+        segments = split_text(text)
 
-        # Post-process the summary
-        processed_summary = post_process_summary(summary)
+        # Asynchronous processing of segments
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            futures = [executor.submit(summarize_segment, segment) for segment in segments]
+            topic_summaries = [future.result() for future in concurrent.futures.as_completed(futures)]
 
-        # Return the processed summary as JSON
-        return jsonify({'summary': processed_summary})
+        overall_summary = summarize_text_with_bart(text)
+        processed_overall_summary = post_process_summary(overall_summary)
+
+        return jsonify({'topic_summaries': topic_summaries, 'overall_summary': processed_overall_summary})
 
 if __name__ == '__main__':
-    app.run(debug=True, port=5000)
+    app.run(debug=True, port=5001)  
+

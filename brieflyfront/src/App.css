@@ -5,6 +5,7 @@
   padding: 20px; /* Set the desired padding */
   box-sizing: border-box;
   border-radius: 8px;
+  position: relative; /* Ensure relative positioning for absolute positioning within */
 }
 
 .App-header {
@@ -67,4 +68,32 @@ p {
   margin-top: 20px;
   font-size: 1.5rem;
   color: #333;
+}
+
+.icon-container {
+  position: absolute;
+  top: 20%;
+  right: 0;
+  padding: 20px; /* Adjust padding as needed */
+}
+
+.highlight-icon {
+  color: red;
+  cursor: pointer;
+}
+
+.deeper {
+  transition: box-shadow 0.3s ease;
+  box-shadow: 0px 8px 16px rgba(0, 0, 0, 0.2);
+  border-radius: 8px; /* Adjust the value as needed */
+}
+
+.history-icon-container {
+  position: absolute;
+  bottom: calc(20% + 100px); /* Adjust the value as needed */
+  right: 20px; /* Add some padding to the right */
+}
+
+.history-icon {
+  margin-left: 10px;
 }
